@@ -32,7 +32,7 @@ const corsOptions = {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
-    const allowedOrigins = ['https://your-frontend-domain.com',
+    const allowedOrigins = ['https://booqly-frontend.onrender.com',
       'http://localhost:5173/'
     ];
 
