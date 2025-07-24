@@ -33,7 +33,7 @@ const corsOptions = {
     if (!origin) return callback(null, true);
 
     const allowedOrigins = ['https://booqly-frontend.onrender.com',
-      'http://localhost:5173/'
+      'http://localhost:5173'
     ];
 
     if (allowedOrigins.indexOf(origin) !== -1) {
