@@ -5,6 +5,7 @@ const VITE_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 // Create axios instance
 const api = axios.create({
   baseURL: VITE_API_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
