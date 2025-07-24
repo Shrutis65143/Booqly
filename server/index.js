@@ -28,12 +28,14 @@ const corsOptions = {
     if (process.env.NODE_ENV !== 'production') {
       return callback(null, true);
     }
-    
+
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
-    const allowedOrigins = ['https://your-frontend-domain.com'];
-    
+
+    const allowedOrigins = ['https://your-frontend-domain.com',
+      'http://localhost:5173/'
+    ];
+
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -81,9 +83,9 @@ app.use((req, res, next) => {
   const method = req.method;
   const url = req.originalUrl;
   const ip = req.ip || req.connection.remoteAddress;
-  
+
   console.log(`[${timestamp}] ${method} ${url} - IP: ${ip}`);
-  
+
   next();
 });
 
