@@ -1,17 +1,17 @@
 import axios from 'axios';
 
-const VITE_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
-// Create axios instance
+// Axios instance
 const api = axios.create({
-  baseURL: VITE_API_URL,
+  baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to add auth token
+// Request Interceptor - Attach token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -20,47 +20,39 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle errors
+// Response Interceptor - Handle token expiry
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
-    if (error.response?.status === 401 && !originalRequest._retry) {
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes('/auth/login') &&
+      !originalRequest.url.includes('/auth/refresh')
+    ) {
       originalRequest._retry = true;
-      
-      // Try to refresh token
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const response = await api.post('/auth/refresh');
-          const { token: newToken, user } = response.data;
-          
-          localStorage.setItem('token', newToken);
-          localStorage.setItem('user', JSON.stringify(user));
-          
-          // Retry the original request
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          return api(originalRequest);
-        } catch {
-          // Refresh failed, redirect to login
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          window.location.href = '/login';
-        }
-      } else {
-        // No token, redirect to login
+      try {
+        const refreshResponse = await api.post('/auth/refresh');
+        const { token: newToken, user } = refreshResponse.data;
+
+        localStorage.setItem('token', newToken);
+        localStorage.setItem('user', JSON.stringify(user));
+
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.href = '/login';
+        return Promise.reject(refreshError);
       }
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -77,18 +69,21 @@ export const authAPI = {
 export const booksAPI = {
   getAll: (params) => api.get('/books', { params }),
   getById: (id) => api.get(`/books/${id}`),
-  create: (bookData) => api.post('/books', bookData),
-  update: (id, bookData) => api.put(`/books/${id}`, bookData),
+  create: (data) => api.post('/books', data),
+  update: (id, data) => api.put(`/books/${id}`, data),
   delete: (id) => api.delete(`/books/${id}`),
   getCategories: () => api.get('/categories'),
-  updateCover: (id, coverImage) => api.put(`/books/${id}/cover`, { coverImage }),
+  updateCover: (id, coverImage) =>
+    api.put(`/books/${id}/cover`, coverImage, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
 
 // Borrows API
 export const borrowsAPI = {
   getAll: (params) => api.get('/borrows', { params }),
   getById: (id) => api.get(`/borrows/${id}`),
-  borrow: (borrowData) => api.post('/borrows', borrowData),
+  borrow: (data) => api.post('/borrows', data),
   return: (id) => api.put(`/borrows/${id}/return`),
   getOverdue: () => api.get('/borrows/overdue'),
   getStats: () => api.get('/borrows/stats'),
@@ -98,11 +93,12 @@ export const borrowsAPI = {
 export const usersAPI = {
   getAll: (params) => api.get('/users', { params }),
   getById: (id) => api.get(`/users/${id}`),
-  create: (userData) => api.post('/users', userData),
-  update: (id, userData) => api.put(`/users/${id}`, userData),
+  create: (data) => api.post('/users', data),
+  update: (id, data) => api.put(`/users/${id}`, data),
   delete: (id) => api.delete(`/users/${id}`),
   toggleStatus: (id) => api.patch(`/users/${id}/toggle-status`),
-  changePassword: (id, newPassword) => api.patch(`/users/${id}/change-password`, { newPassword }),
+  changePassword: (id, newPassword) =>
+    api.patch(`/users/${id}/change-password`, { newPassword }),
 };
 
 // Categories API
@@ -113,4 +109,4 @@ export const categoriesAPI = {
   delete: (id) => api.delete(`/categories/${id}`),
 };
 
-export default api; 
+export default api;
