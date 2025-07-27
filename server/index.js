@@ -33,9 +33,12 @@ const corsOptions = {
     if (!origin) return callback(null, true);
 
     const allowedOrigins = [
-    'https://booqly-frontend-moev5iqeg-shruti-singhs-projects-99cf8411.vercel.app',
-    'http://localhost:5173'
-   ];
+  'https://booqly-frontend.vercel.app',
+  'https://booqly-frontend-6pwwboh16-shruti-singhs-projects-99cf8411.vercel.app',
+  'https://booqly-frontend-moev5iqeg-shruti-singhs-projects-99cf8411.vercel.app',
+  'http://localhost:5173'
+];
+
 
 
     if (allowedOrigins.indexOf(origin) !== -1) {
