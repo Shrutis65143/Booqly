@@ -9,7 +9,7 @@ dotenv.config();
 import connectDB from './config/db.js';
 import errorHandler from './middleware/errorHandler.js';
 
-// Route files
+// Route files are there
 import auth from './routes/auth.js';
 import books from './routes/books.js';
 import borrows from './routes/borrows.js';
